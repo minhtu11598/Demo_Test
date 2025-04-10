@@ -5,7 +5,7 @@
 </head>
 <body>
   <h1>Hello, JavaScript!</h1>
-  <button onclick="showMessage()">Click Me</button>
+  <button onclick="showMessage()">Click Me Here</button>
 
   <script>
     function showMessage() {
