@@ -1,19 +1,35 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  - main
 
 pool:
-  vmImage: ubuntu-latest
+  name: my-self-hosted-pool
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+jobs:
+- job: RunRobotFramework
+  displayName: Robot Framework on .venv (Windows)
+  steps:
+    - checkout: self
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    - pwsh: |
+        python -m pip install --upgrade pip
+        if (-not (Test-Path -Path ".venv")) {
+          python -m venv .venv
+        }
+        .\.venv\Scripts\Activate.ps1
+        pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Setup .venv and install dependencies'
+
+    - pwsh: |
+        .\.venv\Scripts\Activate.ps1
+        New-Item -ItemType Directory -Force -Path results | Out-Null
+        robot --outputdir results --xunit results\xunit.xml tests/
+      displayName: 'Run Robot Framework tests'
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: 'results\\xunit.xml'
+        testRunTitle: 'Robot Framework Results'
+        mergeTestResults: true
+        failTaskOnFailedTests: true
+      displayName: 'Publish test results'
