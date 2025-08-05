@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.2.2 (Python 3.13.3 on win32)" generated="2025-06-23T20:19:15.611296" rpa="false" schemaversion="5">
+<suite id="s1" name="Practice Form2" source="d:\WAV-auto-hem\tu_tests\practice_form2.robot">
+<test id="s1-t1" name="Check Red Highlight Fields" line="8">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:15.865177" level="INFO">Opening browser 'Chrome' to base url 'https://demoqa.com/automation-practice-form'.</msg>
+<arg>https://demoqa.com/automation-practice-form</arg>
+<arg>Chrome</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2025-06-23T20:19:15.864889" elapsed="5.584762"/>
+</kw>
+<kw name="Maximize Browser Window" owner="SeleniumLibrary">
+<doc>Maximizes current browser window.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.450183" elapsed="0.031935"/>
+</kw>
+<kw name="Scroll To The End Of The Page" owner="practice_form">
+<kw name="Scroll Element Into View" owner="SeleniumLibrary">
+<arg>${LAST_PAGE_ELEMENT}</arg>
+<doc>Scrolls the element identified by ``locator`` into view.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.483202" elapsed="0.302813"/>
+</kw>
+<doc>This function is for scrolling to the end of the page</doc>
+<status status="PASS" start="2025-06-23T20:19:21.482801" elapsed="0.303393"/>
+</kw>
+<kw name="Submit Practice Form" owner="practice_form">
+<kw name="Click Button" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.787318" level="INFO">Clicking button '//*[@id="submit"]'.</msg>
+<arg>${SUBMIT_BUTTON}</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.787087" elapsed="0.110352"/>
+</kw>
+<doc>This function is for submitting form</doc>
+<status status="PASS" start="2025-06-23T20:19:21.786768" elapsed="0.110847"/>
+</kw>
+<kw name="Verify that the required fields will be red-highlighted" owner="practice_form">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.898546" level="INFO">@{fields} = [ firstName | lastName | userNumber ]</msg>
+<var>@{fields}</var>
+<arg>firstName</arg>
+<arg>lastName</arg>
+<arg>userNumber</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.898304" elapsed="0.000354"/>
+</kw>
+<for flavor="IN">
+<iter>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.899529" level="INFO">Executing JavaScript:
+return window.getComputedStyle(document.querySelector('#firstName')).getPropertyValue('border-color')
+Without any arguments.</msg>
+<msg time="2025-06-23T20:19:21.905545" level="INFO">${border} = rgb(220, 53, 69)</msg>
+<var>${border}</var>
+<arg>return window.getComputedStyle(document.querySelector('#${id}')).getPropertyValue('border-color')</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.899134" elapsed="0.006575"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.906138" level="INFO">Border Color: rgb(220, 53, 69)</msg>
+<arg>Border Color: ${border}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.905908" elapsed="0.000349"/>
+</kw>
+<kw name="Should Be Equal As Strings" owner="BuiltIn">
+<arg>${border}</arg>
+<arg>rgb(220, 53, 69)</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.906399" elapsed="0.000216"/>
+</kw>
+<var name="${id}">firstName</var>
+<status status="PASS" start="2025-06-23T20:19:21.898977" elapsed="0.007731"/>
+</iter>
+<iter>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.907680" level="INFO">Executing JavaScript:
+return window.getComputedStyle(document.querySelector('#lastName')).getPropertyValue('border-color')
+Without any arguments.</msg>
+<msg time="2025-06-23T20:19:21.916395" level="INFO">${border} = rgb(220, 53, 69)</msg>
+<var>${border}</var>
+<arg>return window.getComputedStyle(document.querySelector('#${id}')).getPropertyValue('border-color')</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.907023" elapsed="0.009665"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.917464" level="INFO">Border Color: rgb(220, 53, 69)</msg>
+<arg>Border Color: ${border}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.917073" elapsed="0.000625"/>
+</kw>
+<kw name="Should Be Equal As Strings" owner="BuiltIn">
+<arg>${border}</arg>
+<arg>rgb(220, 53, 69)</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.918050" elapsed="0.000887"/>
+</kw>
+<var name="${id}">lastName</var>
+<status status="PASS" start="2025-06-23T20:19:21.906879" elapsed="0.012339"/>
+</iter>
+<iter>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.920570" level="INFO">Executing JavaScript:
+return window.getComputedStyle(document.querySelector('#userNumber')).getPropertyValue('border-color')
+Without any arguments.</msg>
+<msg time="2025-06-23T20:19:21.926892" level="INFO">${border} = rgb(220, 53, 69)</msg>
+<var>${border}</var>
+<arg>return window.getComputedStyle(document.querySelector('#${id}')).getPropertyValue('border-color')</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.919895" elapsed="0.007216"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.927769" level="INFO">Border Color: rgb(220, 53, 69)</msg>
+<arg>Border Color: ${border}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.927448" elapsed="0.000525"/>
+</kw>
+<kw name="Should Be Equal As Strings" owner="BuiltIn">
+<arg>${border}</arg>
+<arg>rgb(220, 53, 69)</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.928231" elapsed="0.000419"/>
+</kw>
+<var name="${id}">userNumber</var>
+<status status="PASS" start="2025-06-23T20:19:21.919544" elapsed="0.009282"/>
+</iter>
+<var>${id}</var>
+<value>@{fields}</value>
+<status status="PASS" start="2025-06-23T20:19:21.898772" elapsed="0.030241"/>
+</for>
+<status status="PASS" start="2025-06-23T20:19:21.898006" elapsed="0.031203"/>
+</kw>
+<kw name="Verify that the required radios will be red-highlighted" owner="practice_form">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.931086" level="INFO">@{gender_labels} = [ genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(1) &gt; label | genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(2) &gt; label | genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(3) &gt; la...</msg>
+<var>@{gender_labels}</var>
+<arg>genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(1) &gt; label</arg>
+<arg>genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(2) &gt; label</arg>
+<arg>genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(3) &gt; label</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.930685" elapsed="0.000602"/>
+</kw>
+<for flavor="IN">
+<iter>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.932697" level="INFO">Executing JavaScript:
+return window.getComputedStyle(document.querySelector('#genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(1) &gt; label')).getPropertyValue('color')
+Without any arguments.</msg>
+<msg time="2025-06-23T20:19:21.942008" level="INFO">${border} = rgb(220, 53, 69)</msg>
+<var>${border}</var>
+<arg>return window.getComputedStyle(document.querySelector('#${label_selector}')).getPropertyValue('color')</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.932173" elapsed="0.010051"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.943180" level="INFO">Border Color: rgb(220, 53, 69)</msg>
+<arg>Border Color: ${border}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.942790" elapsed="0.000628"/>
+</kw>
+<kw name="Should Be Equal As Strings" owner="BuiltIn">
+<arg>${border}</arg>
+<arg>rgb(220, 53, 69)</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.943720" elapsed="0.000417"/>
+</kw>
+<var name="${label_selector}">genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(1) &gt; label</var>
+<status status="PASS" start="2025-06-23T20:19:21.931900" elapsed="0.012432"/>
+</iter>
+<iter>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.945824" level="INFO">Executing JavaScript:
+return window.getComputedStyle(document.querySelector('#genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(2) &gt; label')).getPropertyValue('color')
+Without any arguments.</msg>
+<msg time="2025-06-23T20:19:21.952148" level="INFO">${border} = rgb(220, 53, 69)</msg>
+<var>${border}</var>
+<arg>return window.getComputedStyle(document.querySelector('#${label_selector}')).getPropertyValue('color')</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.945028" elapsed="0.007383"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.953155" level="INFO">Border Color: rgb(220, 53, 69)</msg>
+<arg>Border Color: ${border}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.952805" elapsed="0.000555"/>
+</kw>
+<kw name="Should Be Equal As Strings" owner="BuiltIn">
+<arg>${border}</arg>
+<arg>rgb(220, 53, 69)</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.953622" elapsed="0.000330"/>
+</kw>
+<var name="${label_selector}">genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(2) &gt; label</var>
+<status status="PASS" start="2025-06-23T20:19:21.944660" elapsed="0.009481"/>
+</iter>
+<iter>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2025-06-23T20:19:21.955299" level="INFO">Executing JavaScript:
+return window.getComputedStyle(document.querySelector('#genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(3) &gt; label')).getPropertyValue('color')
+Without any arguments.</msg>
+<msg time="2025-06-23T20:19:21.961327" level="INFO">${border} = rgb(220, 53, 69)</msg>
+<var>${border}</var>
+<arg>return window.getComputedStyle(document.querySelector('#${label_selector}')).getPropertyValue('color')</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.954682" elapsed="0.006832"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2025-06-23T20:19:21.962075" level="INFO">Border Color: rgb(220, 53, 69)</msg>
+<arg>Border Color: ${border}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.961734" elapsed="0.000527"/>
+</kw>
+<kw name="Should Be Equal As Strings" owner="BuiltIn">
+<arg>${border}</arg>
+<arg>rgb(220, 53, 69)</arg>
+<doc>Fails if objects are unequal after converting them to strings.</doc>
+<status status="PASS" start="2025-06-23T20:19:21.962476" elapsed="0.000310"/>
+</kw>
+<var name="${label_selector}">genterWrapper &gt; div.col-md-9.col-sm-12 &gt; div:nth-child(3) &gt; label</var>
+<status status="PASS" start="2025-06-23T20:19:21.954421" elapsed="0.008483"/>
+</iter>
+<var>${label_selector}</var>
+<value>@{gender_labels}</value>
+<status status="PASS" start="2025-06-23T20:19:21.931531" elapsed="0.031493"/>
+</for>
+<status status="PASS" start="2025-06-23T20:19:21.930198" elapsed="0.032985"/>
+</kw>
+<status status="PASS" start="2025-06-23T20:19:15.863804" elapsed="6.099803"/>
+</test>
+<status status="PASS" start="2025-06-23T20:19:15.614316" elapsed="6.350623"/>
+</suite>
+<statistics>
+<total>
+<stat pass="1" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Practice Form2" id="s1" pass="1" fail="0" skip="0">Practice Form2</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
