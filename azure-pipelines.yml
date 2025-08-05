@@ -6,24 +6,22 @@ pool:
 
 jobs:
 - job: RunRobotFramework
-  displayName: Robot Framework on .venv (Windows)
+  displayName: Robot Framework on .venv (Windows CMD)
   steps:
     - checkout: self
 
-    - pwsh: |
+    - script: |
         python -m pip install --upgrade pip
-        if (-not (Test-Path -Path ".venv")) {
-          python -m venv .venv
-        }
-        .\.venv\Scripts\Activate.ps1
+        if not exist .venv python -m venv .venv
+        call .\.venv\Scripts\activate
         pip install --upgrade pip
         pip install -r requirements.txt
       displayName: 'Setup .venv and install dependencies'
 
-    - pwsh: |
-        .\.venv\Scripts\Activate.ps1
-        New-Item -ItemType Directory -Force -Path results | Out-Null
-        robot --outputdir results --xunit results\xunit.xml tests/
+    - script: |
+        call .\.venv\Scripts\activate
+        if not exist results mkdir results
+        robot --outputdir results --xunit results\xunit.xml tu_tests/login.robot
       displayName: 'Run Robot Framework tests'
 
     - task: PublishTestResults@2
