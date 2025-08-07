@@ -31,3 +31,8 @@ jobs:
         mergeTestResults: true
         failTaskOnFailedTests: true
       displayName: 'Publish test results'
+
+    - publish: results
+      artifact: RobotResults
+      displayName: 'Publish Robot Framework results as artifact'
+
