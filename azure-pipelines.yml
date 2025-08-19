@@ -44,14 +44,17 @@ jobs:
     # Send Slack notification (PowerShell)
     - powershell: |
         $status = "✅ SUCCESS"
-        if ("$(Build.Status)" -eq "Failed") { $status = "❌ FAILED" }
-        elseif ("$(Build.Status)" -eq "SucceededWithIssues") { $status = "⚠️ PARTIAL SUCCESS" }
+        if ($env:BUILD_STATUS -eq "Failed") { $status = "❌ FAILED" }
+        elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "⚠️ PARTIAL SUCCESS" }
 
-        $msg = "Robot Framework Pipeline ($(Build.BuildNumber)) finished with status: $status on branch $(Build.SourceBranchName)"
+        $msg = "Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: $status on branch $env:BUILD_SOURCEBRANCHNAME"
 
         $payload = @{ text = $msg } | ConvertTo-Json -Compress
-        Invoke-RestMethod -Uri "$(SLACK_WEBHOOK_URL)" -Method Post -ContentType 'application/json' -Body $payload
+        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
       displayName: 'Notify Slack'
       env:
-        SLACK_WEBHOOK_URL: $(SLACK_WEBHOOK_URL)   # <-- secret variable in Azure DevOps
+        SLACK_WEBHOOK_URL: $(SLACK_WEBHOOK_URL)      # secret variable in Azure DevOps
+        BUILD_STATUS: $(Build.Status)
+        BUILD_BUILDNUMBER: $(Build.BuildNumber)
+        BUILD_SOURCEBRANCHNAME: $(Build.SourceBranchName)
       condition: always()
