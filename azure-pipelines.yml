@@ -23,13 +23,13 @@ jobs:
     - script: |
         call .\.venv\Scripts\activate
         if not exist results mkdir results
-        robot --outputdir results --xunit results\xunit.xml tu_tests/practice_form1.robot
+        robot --outputdir results --xunit results/xunit.xml tu_tests/practice_form1.robot
       displayName: 'Run Robot Framework tests'
 
     # Publish test results to Azure DevOps Test tab
     - task: PublishTestResults@2
       inputs:
-        testResultsFiles: 'results\\xunit.xml'
+        testResultsFiles: "results/xunit.xml"
         testRunTitle: 'Robot Framework Results'
         mergeTestResults: true
         failTaskOnFailedTests: true
@@ -41,19 +41,17 @@ jobs:
       displayName: 'Publish Robot Framework results as artifact'
       condition: always()   # publish even if tests fail
 
-    # Send Slack notification
-    - script: |
-        set STATUS="✅ SUCCESS"
-        if "%BUILD_STATUS%"=="Failed" set STATUS="❌ FAILED"
-        if "%BUILD_STATUS%"=="SucceededWithIssues" set STATUS="⚠️ PARTIAL SUCCESS"
+    # Send Slack notification (PowerShell)
+    - powershell: |
+        $status = "✅ SUCCESS"
+        if ("$(Build.Status)" -eq "Failed") { $status = "❌ FAILED" }
+        elseif ("$(Build.Status)" -eq "SucceededWithIssues") { $status = "⚠️ PARTIAL SUCCESS" }
 
-        set MSG="Robot Framework Pipeline (%BUILD_BUILDNUMBER%) finished with status: %STATUS% on branch $(Build.SourceBranchName)"
+        $msg = "Robot Framework Pipeline ($(Build.BuildNumber)) finished with status: $status on branch $(Build.SourceBranchName)"
 
-        curl -X POST -H "Content-type: application/json" ^
-          --data "{\"text\": \"%MSG%\"}" %SLACK_WEBHOOK_URL%
+        $payload = @{ text = $msg } | ConvertTo-Json -Compress
+        Invoke-RestMethod -Uri "$(SLACK_WEBHOOK_URL)" -Method Post -ContentType 'application/json' -Body $payload
       displayName: 'Notify Slack'
       env:
-        SLACK_WEBHOOK_URL: $(SLACK_WEBHOOK_URL)
-        BUILD_STATUS: $(Build.Status)
-        BUILD_BUILDNUMBER: $(Build.BuildNumber)
+        SLACK_WEBHOOK_URL: $(SLACK_WEBHOOK_URL)   # <-- secret variable in Azure DevOps
       condition: always()
