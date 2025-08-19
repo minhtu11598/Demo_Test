@@ -10,6 +10,7 @@ jobs:
   steps:
     - checkout: self
 
+    # Setup venv and install dependencies
     - script: |
         python -m pip install --upgrade pip
         if not exist .venv python -m venv .venv
@@ -18,12 +19,14 @@ jobs:
         pip install -r requirements.txt
       displayName: 'Setup .venv and install dependencies'
 
+    # Run Robot Framework tests
     - script: |
         call .\.venv\Scripts\activate
         if not exist results mkdir results
         robot --outputdir results --xunit results\xunit.xml tu_tests/practice_form1.robot
       displayName: 'Run Robot Framework tests'
 
+    # Publish test results to Azure DevOps Test tab
     - task: PublishTestResults@2
       inputs:
         testResultsFiles: 'results\\xunit.xml'
@@ -32,7 +35,25 @@ jobs:
         failTaskOnFailedTests: true
       displayName: 'Publish test results'
 
+    # Publish results folder as artifact (logs, report.html, etc.)
     - publish: results
       artifact: RobotResults
       displayName: 'Publish Robot Framework results as artifact'
+      condition: always()   # publish even if tests fail
 
+    # Send Slack notification
+    - script: |
+        set STATUS="✅ SUCCESS"
+        if "%BUILD_STATUS%"=="Failed" set STATUS="❌ FAILED"
+        if "%BUILD_STATUS%"=="SucceededWithIssues" set STATUS="⚠️ PARTIAL SUCCESS"
+
+        set MSG="Robot Framework Pipeline (%BUILD_BUILDNUMBER%) finished with status: %STATUS% on branch $(Build.SourceBranchName)"
+
+        curl -X POST -H "Content-type: application/json" ^
+          --data "{\"text\": \"%MSG%\"}" %SLACK_WEBHOOK_URL%
+      displayName: 'Notify Slack'
+      env:
+        SLACK_WEBHOOK_URL: $(SLACK_WEBHOOK_URL)
+        BUILD_STATUS: $(Build.Status)
+        BUILD_BUILDNUMBER: $(Build.BuildNumber)
+      condition: always()
