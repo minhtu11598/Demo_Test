@@ -43,9 +43,9 @@ jobs:
 
     # Send Slack notification (PowerShell)
     - powershell: |
-        $status = "✅ SUCCESS"
-        if ($env:BUILD_STATUS -eq "Failed") { $status = "❌ FAILED" }
-        elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "⚠️ PARTIAL SUCCESS" }
+        $status = "SUCCESS"
+        if ($env:BUILD_STATUS -eq "Failed") { $status = "FAILED" }
+        elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "PARTIAL SUCCESS" }
 
         $msg = "Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: $status on branch $env:BUILD_SOURCEBRANCHNAME"
 
