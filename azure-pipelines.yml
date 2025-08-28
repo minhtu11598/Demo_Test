@@ -41,16 +41,25 @@ jobs:
       displayName: 'Publish Robot Framework results as artifact'
       condition: always()   # publish even if tests fail
 
-    # Send Slack notification with link to artifact
+    # Publish only report.html to pipeline summary (direct link)
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: 'results/report.html'
+        artifact: 'RobotReport'
+        publishLocation: 'pipeline'
+      displayName: 'Publish report.html to pipeline summary'
+      condition: always()
+
+    # Send Slack notification with direct link to report.html
     - powershell: |
         $status = "SUCCESS"
         if ($env:BUILD_STATUS -eq "Failed") { $status = "FAILED" }
         elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "PARTIAL SUCCESS" }
 
-        # Build artifact URL (Azure DevOps build artifacts page)
-        $artifactUrl = "$env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI$env:SYSTEM_TEAMPROJECT/_build/results?buildId=$env:BUILD_BUILDID&view=artifacts&type=publishedArtifacts"
+        # Direct report.html URL (hosted inside Azure DevOps)
+        $reportUrl = "$env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI$env:SYSTEM_TEAMPROJECT/_build/results?buildId=$env:BUILD_BUILDID&view=artifacts&pathAsFile=true&artifactName=RobotReport&fileName=report.html"
 
-        $msg = "🤖 Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: *$status* on branch `$env:BUILD_SOURCEBRANCHNAME`n📊 Report: $artifactUrl"
+        $msg = "🤖 Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: *$status* on branch $env:BUILD_SOURCEBRANCHNAME `n📊 Report: $reportUrl"
 
         $payload = @{ text = $msg } | ConvertTo-Json -Compress
         Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
