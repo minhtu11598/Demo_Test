@@ -41,13 +41,16 @@ jobs:
       displayName: 'Publish Robot Framework results as artifact'
       condition: always()   # publish even if tests fail
 
-    # Send Slack notification (PowerShell)
+    # Send Slack notification with link to artifact
     - powershell: |
         $status = "SUCCESS"
         if ($env:BUILD_STATUS -eq "Failed") { $status = "FAILED" }
         elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "PARTIAL SUCCESS" }
 
-        $msg = "Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: $status on branch $env:BUILD_SOURCEBRANCHNAME"
+        # Build artifact URL (Azure DevOps build artifacts page)
+        $artifactUrl = "$env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI$env:SYSTEM_TEAMPROJECT/_build/results?buildId=$env:BUILD_BUILDID&view=artifacts&type=publishedArtifacts"
+
+        $msg = "🤖 Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: *$status* on branch `$env:BUILD_SOURCEBRANCHNAME`n📊 Report: $artifactUrl"
 
         $payload = @{ text = $msg } | ConvertTo-Json -Compress
         Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
@@ -57,4 +60,7 @@ jobs:
         BUILD_STATUS: $(Build.Status)
         BUILD_BUILDNUMBER: $(Build.BuildNumber)
         BUILD_SOURCEBRANCHNAME: $(Build.SourceBranchName)
+        BUILD_BUILDID: $(Build.BuildId)
+        SYSTEM_TEAMPROJECT: $(System.TeamProject)
+        SYSTEM_TEAMFOUNDATIONCOLLECTIONURI: $(System.TeamFoundationCollectionUri)
       condition: always()
