@@ -39,37 +39,38 @@ jobs:
     - publish: results
       artifact: RobotResults
       displayName: 'Publish Robot Framework results as artifact'
-      condition: always()   # publish even if tests fail
-
-    # Publish only report.html to pipeline summary (direct link)
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: 'results/report.html'
-        artifact: 'RobotReport'
-        publishLocation: 'pipeline'
-      displayName: 'Publish report.html to pipeline summary'
       condition: always()
 
-    # Send Slack notification with direct link to report.html
+    # Upload results to Azure Blob Storage
+    - powershell: |
+        az storage blob upload-batch `
+          --account-name mytestreportsstorage `
+          --destination robot-reports/$env:BUILD_BUILDID `
+          --source results `
+          --connection-string "$env:AZURE_STORAGE_CONNECTION_STRING"
+      displayName: 'Upload results to Azure Blob Storage'
+      condition: always()
+      env:
+        AZURE_STORAGE_CONNECTION_STRING: '$(AZURE_STORAGE_CONNECTION_STRING)'
+        BUILD_BUILDID: '$(Build.BuildId)'
+
+    # Send Slack notification with direct link
     - powershell: |
         $status = "SUCCESS"
         if ($env:BUILD_STATUS -eq "Failed") { $status = "FAILED" }
         elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "PARTIAL SUCCESS" }
 
-        # Direct report.html URL (hosted inside Azure DevOps)
-        $reportUrl = "$env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI$env:SYSTEM_TEAMPROJECT/_build/results?buildId=$env:BUILD_BUILDID&view=artifacts&pathAsFile=true&artifactName=RobotReport&fileName=report.html"
+        $reportUrl = "https://<your-storage-account>.blob.core.windows.net/robot-reports/$($env:BUILD_BUILDID)/report.html"
 
-        $msg = "🤖 Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: *$status* on branch $env:BUILD_SOURCEBRANCHNAME `n📊 Report: $reportUrl"
+        $msg = "Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: $status on branch $env:BUILD_SOURCEBRANCHNAME. View report: $reportUrl"
 
         $payload = @{ text = $msg } | ConvertTo-Json -Compress
         Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
       displayName: 'Notify Slack'
       env:
-        SLACK_WEBHOOK_URL: $(SLACK_WEBHOOK_URL)      # secret variable in Azure DevOps
-        BUILD_STATUS: $(Build.Status)
-        BUILD_BUILDNUMBER: $(Build.BuildNumber)
-        BUILD_SOURCEBRANCHNAME: $(Build.SourceBranchName)
-        BUILD_BUILDID: $(Build.BuildId)
-        SYSTEM_TEAMPROJECT: $(System.TeamProject)
-        SYSTEM_TEAMFOUNDATIONCOLLECTIONURI: $(System.TeamFoundationCollectionUri)
+        SLACK_WEBHOOK_URL: '$(SLACK_WEBHOOK_URL)'
+        BUILD_STATUS: '$(Build.Status)'
+        BUILD_BUILDNUMBER: '$(Build.BuildNumber)'
+        BUILD_SOURCEBRANCHNAME: '$(Build.SourceBranchName)'
+        BUILD_BUILDID: '$(Build.BuildId)'
       condition: always()
