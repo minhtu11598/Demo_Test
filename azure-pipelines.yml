@@ -1,5 +1,11 @@
+# Run automatically only on main branch
 trigger:
-  - main
+  branches:
+    include:
+      - main
+
+# Disable PR auto-trigger to avoid double runs
+pr: none
 
 pool:
   name: SelfHostedPool
@@ -41,13 +47,16 @@ jobs:
       displayName: 'Publish Robot Framework results as artifact'
       condition: always()
 
-    # Send results via email
+    # Send results via Gmail
     - powershell: |
-        # Zip results folder
-        Add-Type -A System.IO.Compression.FileSystem
+        # Paths
+        $resultsDir = "$(Build.SourcesDirectory)/results"
         $zipfile = "$(Pipeline.Workspace)/results.zip"
+
+        # Create zip of results
+        Add-Type -A System.IO.Compression.FileSystem
         if (Test-Path $zipfile) { Remove-Item $zipfile }
-        [IO.Compression.ZipFile]::CreateFromDirectory("$(Pipeline.Workspace)/results", $zipfile)
+        [IO.Compression.ZipFile]::CreateFromDirectory($resultsDir, $zipfile)
 
         # Email settings
         $smtpServer = "smtp.gmail.com"
@@ -57,12 +66,12 @@ jobs:
         $subject = "Robot Framework Test Report - $(Build.BuildNumber)"
         $body = "Hi team, please find attached the Robot Framework test results from pipeline run $(Build.BuildNumber) on branch $(Build.SourceBranchName)."
 
-        # Auth
-        $password = "$(GMAIL_APP_PASSWORD)"  
+        # Auth (Gmail App Password)
+        $password = "$(GMAIL_APP_PASSWORD)"
         $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential($from, $securePassword)
 
-        # Send email
+        # Send email with attachment
         Send-MailMessage `
           -From $from `
           -To $to `
