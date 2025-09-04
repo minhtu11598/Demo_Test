@@ -35,42 +35,43 @@ jobs:
         failTaskOnFailedTests: true
       displayName: 'Publish test results'
 
-    # Publish results folder as artifact (logs, report.html, etc.)
+    # Publish results folder as artifact (optional, for DevOps UI)
     - publish: results
       artifact: RobotResults
       displayName: 'Publish Robot Framework results as artifact'
       condition: always()
 
-    # Upload results to Azure Blob Storage
+    # Send results via email
     - powershell: |
-        az storage blob upload-batch `
-          --account-name mytestreportsstorage `
-          --destination robot-reports/$env:BUILD_BUILDID `
-          --source results `
-          --connection-string "$env:AZURE_STORAGE_CONNECTION_STRING"
-      displayName: 'Upload results to Azure Blob Storage'
-      condition: always()
-      env:
-        AZURE_STORAGE_CONNECTION_STRING: '$(AZURE_STORAGE_CONNECTION_STRING)'
-        BUILD_BUILDID: '$(Build.BuildId)'
+        # Zip results folder
+        Add-Type -A System.IO.Compression.FileSystem
+        $zipfile = "$(Pipeline.Workspace)/results.zip"
+        if (Test-Path $zipfile) { Remove-Item $zipfile }
+        [IO.Compression.ZipFile]::CreateFromDirectory("$(Pipeline.Workspace)/results", $zipfile)
 
-    # Send Slack notification with direct link
-    - powershell: |
-        $status = "SUCCESS"
-        if ($env:BUILD_STATUS -eq "Failed") { $status = "FAILED" }
-        elseif ($env:BUILD_STATUS -eq "SucceededWithIssues") { $status = "PARTIAL SUCCESS" }
+        # Email settings
+        $smtpServer = "smtp.gmail.com"
+        $smtpPort = 587
+        $from = "$(EMAIL_FROM)"
+        $to = "$(EMAIL_TO)"
+        $subject = "Robot Framework Test Report - $(Build.BuildNumber)"
+        $body = "Hi team, please find attached the Robot Framework test results from pipeline run $(Build.BuildNumber) on branch $(Build.SourceBranchName)."
 
-        $reportUrl = "https://<your-storage-account>.blob.core.windows.net/robot-reports/$($env:BUILD_BUILDID)/report.html"
+        # Auth
+        $password = "$(GMAIL_APP_PASSWORD)"  
+        $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential($from, $securePassword)
 
-        $msg = "Robot Framework Pipeline ($env:BUILD_BUILDNUMBER) finished with status: $status on branch $env:BUILD_SOURCEBRANCHNAME. View report: $reportUrl"
-
-        $payload = @{ text = $msg } | ConvertTo-Json -Compress
-        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
-      displayName: 'Notify Slack'
-      env:
-        SLACK_WEBHOOK_URL: '$(SLACK_WEBHOOK_URL)'
-        BUILD_STATUS: '$(Build.Status)'
-        BUILD_BUILDNUMBER: '$(Build.BuildNumber)'
-        BUILD_SOURCEBRANCHNAME: '$(Build.SourceBranchName)'
-        BUILD_BUILDID: '$(Build.BuildId)'
+        # Send email
+        Send-MailMessage `
+          -From $from `
+          -To $to `
+          -Subject $subject `
+          -Body $body `
+          -SmtpServer $smtpServer `
+          -Port $smtpPort `
+          -UseSsl `
+          -Credential $credential `
+          -Attachments $zipfile
+      displayName: 'Send Robot Framework results via Gmail'
       condition: always()
