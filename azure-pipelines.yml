@@ -84,3 +84,16 @@ jobs:
           -Attachments $zipfile
       displayName: 'Send Robot Framework results via Gmail'
       condition: always()
+    # Send Slack notification
+    - powershell: |
+        $webhookUrl = "$(SLACK_WEBHOOK_URL)"
+        $branch = "$(Build.SourceBranchName)"
+        $buildNumber = "$(Build.BuildNumber)"
+        $status = "$(Agent.JobStatus)"
+        $message = @{
+            text = "📢 Robot Framework pipeline completed on *$branch* (Build: $buildNumber). Status: *$status* ✅"
+        } | ConvertTo-Json -Compress
+
+        Invoke-RestMethod -Uri $webhookUrl -Method Post -ContentType 'application/json' -Body $message
+      displayName: 'Notify Slack about report'
+      condition: always()
