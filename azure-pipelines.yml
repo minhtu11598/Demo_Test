@@ -4,7 +4,7 @@ trigger:
     include:
       - main
 
-# Disable PR auto-trigger to avoid double runs
+# Disable PR trigger to avoid double runs
 pr: none
 
 pool:
@@ -12,7 +12,7 @@ pool:
 
 jobs:
 - job: RunRobotFramework
-  displayName: Robot Framework on .venv (Windows CMD)
+  displayName: Run Robot Framework Tests
   steps:
     - checkout: self
 
@@ -41,7 +41,7 @@ jobs:
         failTaskOnFailedTests: true
       displayName: 'Publish test results'
 
-    # Publish results folder as artifact (optional, for DevOps UI)
+    # Publish results folder as artifact
     - publish: results
       artifact: RobotResults
       displayName: 'Publish Robot Framework results as artifact'
@@ -84,14 +84,16 @@ jobs:
           -Attachments $zipfile
       displayName: 'Send Robot Framework results via Gmail'
       condition: always()
+
     # Send Slack notification
     - powershell: |
         $webhookUrl = "$(SLACK_WEBHOOK_URL)"
         $branch = "$(Build.SourceBranchName)"
         $buildNumber = "$(Build.BuildNumber)"
         $status = "$(Agent.JobStatus)"
+
         $message = @{
-            text = "Robot Framework pipeline completed on *$branch* (Build: $buildNumber). Status: *$status*"
+            text = "Robot Framework tests finished on *$branch* (Build: $buildNumber).`nResult: *$status*.`n Report has been sent via email."
         } | ConvertTo-Json -Compress
 
         Invoke-RestMethod -Uri $webhookUrl -Method Post -ContentType 'application/json' -Body $message
