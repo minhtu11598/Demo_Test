@@ -91,7 +91,7 @@ jobs:
         $buildNumber = "$(Build.BuildNumber)"
         $status = "$(Agent.JobStatus)"
         $message = @{
-            text = "📢 Robot Framework pipeline completed on *$branch* (Build: $buildNumber). Status: *$status* ✅"
+            text = "Robot Framework pipeline completed on *$branch* (Build: $buildNumber). Status: *$status*"
         } | ConvertTo-Json -Compress
 
         Invoke-RestMethod -Uri $webhookUrl -Method Post -ContentType 'application/json' -Body $message
