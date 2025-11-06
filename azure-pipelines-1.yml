@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+- Chrome_checker
 
 variables:
 - name: chrome.stable.version.url
