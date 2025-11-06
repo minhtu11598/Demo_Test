@@ -67,18 +67,4 @@ stages:
             Write-Host "No new Chrome version available"
             echo "##vso[task.setvariable variable=new.version.detected;isOutput=true]false"
           }
-    # - task: VisualStudioTestPlatformInstaller@1
-    #   displayName: Visual Studio Test Platform Installer
-    #   condition: eq(variables['new.version.detected'], 'true')
-    # - task: SmartBearSoftware.dev-install-testcomplete-adapter-task.dev-install-testcomplete-adapter-task.InstallTestCompleteAdapter@1
-    #   displayName: TestComplete test adapter installer
-    #   inputs:
-    #     installExecutor: true
-    #     updateExecutor: true
-    #     accessKey: $(access.key)
-    # - task: VSTest@3
-    #   displayName: VsTest - testAssemblies
-    #   inputs:
-    #     testAssemblyVer2: '**\*.pjs'
-    #     testFiltercriteria: Project=TestProject2024
-    #     vsTestVersion: toolsInstaller
+# Write method to up overwrite the current chrome version by latest version
