@@ -1,68 +1,118 @@
-trigger: none
-name: Chrome_Checker_$(Date:yyyyMMdd)$(Rev:.r)
+# ============================
+#   Chrome_Checker Pipeline
+# ============================
+
+trigger:
+- Chrome_checker
+
+pool:
+  name: SelfHostedPool
+
+variables:
+  # URL for Chrome latest version API
+  chrome.latest.version.url: "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions"
+
+  # DO NOT put current.chrome.version here.
+  # You already created it in the UI variable panel.
+  # Azure DevOps will load: $(current.chrome.version)
+  # Example in UI: 142.0.7444.10
 
 stages:
-- stage: ChromeCheck
-  displayName: "Chrome Checker"
+- stage: CheckChromeVersion
+  displayName: "Check for new Chrome version"
+
   jobs:
-  - job: CheckChrome
-    displayName: "Check Chrome Version"
+  - job: VersionCheck
+    displayName: "Check Chrome version"
+
     steps:
 
-    # -------------------------------------------
-    # 1) Get latest Chrome version from API
-    # -------------------------------------------
+    # ---------------------------------------
+    # Step 1 — Get latest version from API
+    # ---------------------------------------
     - task: PowerShell@2
       name: GetLatestChromeVersionAPI
-      displayName: "Get latest Chrome version"
+      displayName: "Get Chrome Version from Google API"
       inputs:
-        targetType: inline
+        targetType: 'inline'
         script: |
-          $api = "https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/stable/versions"
-          Write-Host "Calling Chrome API..."
-          $response = Invoke-RestMethod -Uri $api -Method GET
+          Write-Host "🔍 Checking latest Chrome version from Google API..."
 
+          $response = Invoke-RestMethod -Uri "$(chrome.latest.version.url)"
           $latestVersion = $response.versions[0].version
 
-          Write-Host "Latest Chrome version is: $latestVersion"
-          echo "##vso[task.setvariable variable=latestVersion;isOutput=true]$latestVersion"
+          Write-Host "Latest Chrome Version: $latestVersion"
 
-    # -------------------------------------------
-    # 2) Compare stored version vs latest version
-    # -------------------------------------------
+          # Output + runtime variable
+          echo "##vso[task.setvariable variable=latestVersion;isOutput=true]$latestVersion"
+          echo "##vso[task.setvariable variable=latestVersion]$latestVersion"
+
+
+    # ---------------------------------------
+    # Step 2 — Compare latest vs current
+    # ---------------------------------------
     - task: PowerShell@2
-      name: CompareVersion
-      displayName: "Compare Chrome versions"
+      name: CompareVersions
+      displayName: "Compare with current stored version"
       inputs:
-        targetType: inline
+        targetType: "inline"
         script: |
+          # Pull your UI variable (example: 142.0.7444.10)
           $currentVersion = "$(current.chrome.version)"
+
+          # Pull latest version from step 1
           $latestVersion = "$(GetLatestChromeVersionAPI.latestVersion)"
 
-          Write-Host "Current stored version : $currentVersion"
+          Write-Host "Current stored version: $currentVersion"
           Write-Host "Latest available version: $latestVersion"
 
           if ($currentVersion -ne $latestVersion) {
             Write-Host "✨ NEW Chrome version detected!"
             echo "##vso[task.setvariable variable=newChromeAvailable;isOutput=true]true"
-          }
-          else {
+          } else {
             Write-Host "No new Chrome version."
             echo "##vso[task.setvariable variable=newChromeAvailable;isOutput=true]false"
           }
 
-    # -------------------------------------------
-    # 3) Update the variable so next run uses new version
-    # -------------------------------------------
-    - task: PowerShell@2
-      name: UpdateVariable
-      displayName: "Update current.chrome.version for next run"
-      condition: eq(variables['CompareVersion.newChromeAvailable'], 'true')
-      inputs:
-        targetType: inline
-        script: |
-          $newVersion = "$(GetLatestChromeVersionAPI.latestVersion)"
-          Write-Host "Updating pipeline variable current.chrome.version to: $newVersion"
 
-          # This updates the pipeline variable permanently
-          echo "##vso[task.setvariable variable=current.chrome.version;isOutput=false;issecret=false]$newVersion"
+    # ---------------------------------------
+    # Step 3 — Write updateFlag.txt
+    # ---------------------------------------
+    - task: PowerShell@2
+      name: WriteFlag
+      displayName: "Write updateFlag.txt"
+      inputs:
+        targetType: 'inline'
+        script: |
+          $flag = "$(CompareVersions.newChromeAvailable)"
+
+          Write-Host "Creating updateFlag.txt with value: $flag"
+
+          $outDir = "$(Build.ArtifactStagingDirectory)"
+          if (!(Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir | Out-Null }
+
+          Set-Content -Path "$outDir/updateFlag.txt" -Value $flag
+
+
+    # ---------------------------------------
+    # Step 4 — Save latest version into file
+    # ---------------------------------------
+    - task: PowerShell@2
+      name: SaveLatestVersion
+      displayName: "Save latest version to file"
+      inputs:
+        targetType: 'inline'
+        script: |
+          $version = "$(GetLatestChromeVersionAPI.latestVersion)"
+          $outDir = "$(Build.ArtifactStagingDirectory)"
+
+          Set-Content -Path "$outDir/latestVersion.txt" -Value $version
+          Write-Host "Saved latestVersion.txt"
+
+
+    # ---------------------------------------
+    # Step 5 — Publish artifact
+    # ---------------------------------------
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: chromeCheckerOutput
+      displayName: "Publish Chrome Checker output artifact"
